@@ -67,7 +67,7 @@ namespace EventStore.Core.Services.Transport.Http
             return new ResponseConfiguration(HttpStatusCode.OK, "OK", contentType, encoding, headrs);
         }
 
-        public static ResponseConfiguration PermanentRedirect(Uri originalUrl, string targetHost, int targetPort)
+        public static ResponseConfiguration TemporaryRedirect(Uri originalUrl, string targetHost, int targetPort)
         {
             var srcBase = new Uri(string.Format("{0}://{1}:{2}/", originalUrl.Scheme, originalUrl.Host, originalUrl.Port), UriKind.Absolute);
             var targetBase = new Uri(string.Format("{0}://{1}:{2}/", originalUrl.Scheme, targetHost, targetPort), UriKind.Absolute);
@@ -326,7 +326,7 @@ namespace EventStore.Core.Services.Transport.Http
 
             var isSystem = SystemStreams.IsSystemStream(streamId);
             var role = (metadata == null || metadata.Acl == null) ? null : metadata.Acl.ReadRole;
-            return isSystem ? (role == SystemUserGroups.All) : (role == null || role == SystemUserGroups.All);
+            return isSystem ? (role == SystemRoles.All) : (role == null || role == SystemRoles.All);
         }
 
         public static ResponseConfiguration WriteEventsCompleted(HttpResponseConfiguratorArgs entity, Message message, string eventStreamId)
@@ -407,7 +407,7 @@ namespace EventStore.Core.Services.Transport.Http
                     var masterInfo = notHandled.AdditionalInfo as TcpClientMessageDto.NotHandled.MasterInfo;
                     if (masterInfo == null)
                         return InternalServerError("No master info available in response");
-                    return PermanentRedirect(requestedUri, masterInfo.ExternalHttpAddress, masterInfo.ExternalHttpPort);
+                    return TemporaryRedirect(requestedUri, masterInfo.ExternalHttpAddress, masterInfo.ExternalHttpPort);
                 }
                 default:
                     return InternalServerError(string.Format("Unknown not handled reason: {0}", notHandled.Reason));
